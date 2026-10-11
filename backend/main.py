@@ -35,29 +35,24 @@ CLASSES = [
 # Post-training temperature scaling parameter for logit calibration
 TEMPERATURE = 0.4793
 
-# Ensure local models directory exists
-os.makedirs("models", exist_ok=True)
-
 # Hugging Face Repository details
 HF_REPO_ID = "stranger890/agrilens-models"
 
-print("Downloading models from Hugging Face Hub...")
+print("Downloading/locating models from Hugging Face Hub...")
 
 gate_model_path = hf_hub_download(
     repo_id=HF_REPO_ID, 
-    filename="agrilens_gate_v2_best.keras",
-    local_dir="models"
+    filename="agrilens_gate_v2_best.keras"
 )
 
 classifier_model_path = hf_hub_download(
     repo_id=HF_REPO_ID, 
-    filename="agrilens_final_v2_best.keras",
-    local_dir="models"
+    filename="agrilens_final_v2_best.keras"
 )
 
-print("Models downloaded successfully! Loading into memory...")
+print("Models ready! Loading into memory...")
 
-# Load Keras models directly from downloaded paths
+# Load Keras models directly from the cached paths returned by Hugging Face
 gate_model = tf.keras.models.load_model(gate_model_path, compile=False)
 classifier_model = tf.keras.models.load_model(classifier_model_path, compile=False)
 
