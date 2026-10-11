@@ -1,4 +1,6 @@
 import io
+import os
+import urllib.request
 import numpy as np
 from PIL import Image
 from fastapi import FastAPI, File, UploadFile
@@ -33,37 +35,27 @@ CLASSES = [
 # Post-training temperature scaling parameter for logit calibration
 TEMPERATURE = 0.4793
 
-import os
-import urllib.request
-
-import os
-import urllib.request
-import tensorflow as tf
-
 # Directory for models
 os.makedirs("models", exist_ok=True)
 
-GATE_MODEL_PATH = "models/agrilens_gate_v2_best.keras"
-GATE_MODEL_URL = "https://github.com/thecodeguy34-creator/AgriLens/releases/download/v1.0.0/agrilens_gate_v2_best.keras"
+# Direct URLs for both models from your GitHub Release
+MODELS = {
+    "models/agrilens_gate_v2_best.keras": "https://github.com/thecodeguy34-creator/AgriLens/releases/download/v1.0.0/agrilens_gate_v2_best.keras",
+    "models/agrilens_final_v2_best.keras": "https://github.com/thecodeguy34-creator/AgriLens/releases/download/v1.0.0/agrilens_final_v2_best.keras"
+}
 
-if not os.path.exists(GATE_MODEL_PATH):
-    print("Downloading model from GitHub Release...")
-    # Add User-Agent header so GitHub permits the download
-    req = urllib.request.Request(
-        GATE_MODEL_URL, 
-        headers={"User-Agent": "Mozilla/5.0"}
-    )
-    with urllib.request.urlopen(req) as response, open(GATE_MODEL_PATH, "wb") as out_file:
-        out_file.write(response.read())
-    print("Download complete!")
+for path, url in MODELS.items():
+    if not os.path.exists(path):
+        print(f"Downloading {path}...")
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req) as response, open(path, "wb") as out_file:
+            out_file.write(response.read())
+        print(f"Successfully downloaded {path}")
 
-# Load Keras models
-gate_model = tf.keras.models.load_model(GATE_MODEL_PATH, compile=False)
+# Load Keras models directly
+gate_model = tf.keras.models.load_model("models/agrilens_gate_v2_best.keras", compile=False)
 classifier_model = tf.keras.models.load_model("models/agrilens_final_v2_best.keras", compile=False)
 
-# Load Keras models directly from backend/models/
-gate_model = tf.keras.models.load_model(GATE_MODEL_PATH, compile=False)
-classifier_model = tf.keras.models.load_model("models/agrilens_final_v2_best.keras", compile=False)
 def preprocess_image(image_bytes: bytes, target_size=(224, 224)):
     """Convert raw input bytes into a normalized RGB NumPy array."""
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
@@ -90,7 +82,6 @@ async def predict(file: UploadFile = File(...)):
             }
 
         # 2. Second Pass: Extract Pre-softmax Logits & Apply Temperature Scaling
-        # Reconstruct unscaled logits from probabilities
         probs = classifier_model.predict(img_array, verbose=0)[0]
         epsilon = 1e-7
         probs_clipped = np.clip(probs, epsilon, 1.0 - epsilon)
