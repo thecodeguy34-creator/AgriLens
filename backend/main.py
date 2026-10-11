@@ -46,11 +46,15 @@ MODELS = {
 
 for path, url in MODELS.items():
     if not os.path.exists(path):
-        print(f"Downloading {path}...")
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req) as response, open(path, "wb") as out_file:
-            out_file.write(response.read())
-        print(f"Successfully downloaded {path}")
+        print(f"Downloading {path} from {url}...")
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req) as response, open(path, "wb") as out_file:
+                out_file.write(response.read())
+            print(f"Successfully downloaded {path}")
+        except Exception as e:
+            print(f"Failed to download {path}. Error: {e}")
+            raise e
 
 # Load Keras models directly
 gate_model = tf.keras.models.load_model("models/agrilens_gate_v2_best.keras", compile=False)
