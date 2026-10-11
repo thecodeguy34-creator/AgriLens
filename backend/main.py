@@ -41,7 +41,7 @@ os.makedirs("models", exist_ok=True)
 # Direct URLs for both models from your GitHub Release
 MODELS = {
     "models/agrilens_gate_v2_best.keras": "https://github.com/thecodeguy34-creator/AgriLens/releases/download/v1.0.0/agrilens_gate_v2_best.keras",
-    "models/agrilens_final_v2_best.keras": "https://github.com/thecodeguy34-creator/AgriLens/releases/download/v1.0.0/agrilens_final_v2_best.keras"
+   "models/agrilens_final_v2_best.keras": "https://github.com/thecodeguy34-creator/AgriLens/releases/download/v1.0.0/agrilens_final_v2.keras"
 }
 
 for path, url in MODELS.items():
