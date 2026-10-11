@@ -36,7 +36,11 @@ TEMPERATURE = 0.4793
 import os
 import urllib.request
 
-# Ensure models directory exists
+import os
+import urllib.request
+import tensorflow as tf
+
+# Directory for models
 os.makedirs("models", exist_ok=True)
 
 GATE_MODEL_PATH = "models/agrilens_gate_v2_best.keras"
@@ -44,8 +48,18 @@ GATE_MODEL_URL = "https://github.com/thecodeguy34-creator/AgriLens/releases/down
 
 if not os.path.exists(GATE_MODEL_PATH):
     print("Downloading model from GitHub Release...")
-    urllib.request.urlretrieve(GATE_MODEL_URL, GATE_MODEL_PATH)
+    # Add User-Agent header so GitHub permits the download
+    req = urllib.request.Request(
+        GATE_MODEL_URL, 
+        headers={"User-Agent": "Mozilla/5.0"}
+    )
+    with urllib.request.urlopen(req) as response, open(GATE_MODEL_PATH, "wb") as out_file:
+        out_file.write(response.read())
     print("Download complete!")
+
+# Load Keras models
+gate_model = tf.keras.models.load_model(GATE_MODEL_PATH, compile=False)
+classifier_model = tf.keras.models.load_model("models/agrilens_final_v2_best.keras", compile=False)
 
 # Load Keras models directly from backend/models/
 gate_model = tf.keras.models.load_model(GATE_MODEL_PATH, compile=False)
