@@ -1,11 +1,11 @@
 import io
 import os
-import urllib.request
 import numpy as np
 from PIL import Image
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 import tensorflow as tf
+from huggingface_hub import hf_hub_download
 
 app = FastAPI(title="AgriLens AI Engine API")
 
@@ -35,30 +35,31 @@ CLASSES = [
 # Post-training temperature scaling parameter for logit calibration
 TEMPERATURE = 0.4793
 
-# Directory for models
+# Ensure local models directory exists
 os.makedirs("models", exist_ok=True)
 
-# Direct URLs for both models from your GitHub Release
-MODELS = {
-    "models/agrilens_gate_v2_best.keras": "https://github.com/thecodeguy34-creator/AgriLens/releases/download/v1.0.0/agrilens_gate_v2_best.keras",
-   "models/agrilens_final_v2_best.keras": "https://github.com/thecodeguy34-creator/AgriLens/releases/download/v1.0.0/agrilens_final_v2.keras"
-}
+# Hugging Face Repository details
+HF_REPO_ID = "stranger890/agrilens-models"
 
-for path, url in MODELS.items():
-    if not os.path.exists(path):
-        print(f"Downloading {path} from {url}...")
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req) as response, open(path, "wb") as out_file:
-                out_file.write(response.read())
-            print(f"Successfully downloaded {path}")
-        except Exception as e:
-            print(f"Failed to download {path}. Error: {e}")
-            raise e
+print("Downloading models from Hugging Face Hub...")
 
-# Load Keras models directly
-gate_model = tf.keras.models.load_model("models/agrilens_gate_v2_best.keras", compile=False)
-classifier_model = tf.keras.models.load_model("models/agrilens_final_v2_best.keras", compile=False)
+gate_model_path = hf_hub_download(
+    repo_id=HF_REPO_ID, 
+    filename="agrilens_gate_v2_best.keras",
+    local_dir="models"
+)
+
+classifier_model_path = hf_hub_download(
+    repo_id=HF_REPO_ID, 
+    filename="agrilens_final_v2_best.keras",
+    local_dir="models"
+)
+
+print("Models downloaded successfully! Loading into memory...")
+
+# Load Keras models directly from downloaded paths
+gate_model = tf.keras.models.load_model(gate_model_path, compile=False)
+classifier_model = tf.keras.models.load_model(classifier_model_path, compile=False)
 
 def preprocess_image(image_bytes: bytes, target_size=(224, 224)):
     """Convert raw input bytes into a normalized RGB NumPy array."""
