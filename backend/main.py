@@ -40,7 +40,7 @@ import urllib.request
 os.makedirs("models", exist_ok=True)
 
 GATE_MODEL_PATH = "models/agrilens_gate_v2_best.keras"
-GATE_MODEL_URL = "PASTE_YOUR_GITHUB_RELEASE_URL_HERE"
+GATE_MODEL_URL = "https://github.com/thecodeguy34-creator/AgriLens/releases/download/v1.0.0/agrilens_gate_v2_best.keras"
 
 if not os.path.exists(GATE_MODEL_PATH):
     print("Downloading model from GitHub Release...")
